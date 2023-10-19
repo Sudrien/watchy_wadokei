@@ -16,32 +16,28 @@ void WatchyWadokei::drawWatchFace() {
 
   minutesBeforeSunset = minutesSunset -  (currentTime.Hour * 60 + currentTime.Minute); // i.e.zero degrees
 
-  //char angle_buffer[24];
+  //char angle_buffer[64];
   float_t hourAngle;
+  //Serial.print("minutesBeforeSunset ");
+  //Serial.print(minutesBeforeSunset);
+  //Serial.print(" ");
+  //Serial.print("minutesDaytime ");
+  //Serial.print(minutesDaytime);
+  //Serial.print(" ");
+  //Serial.print("minutesNighttime ");
+  //Serial.println(minutesNighttime);
 
   if(minutesBeforeSunset > minutesDaytime) {
     hourAngle = -180.0 - 180.0 * (minutesBeforeSunset - minutesDaytime) / minutesNighttime;
-    // sprintf(angle_buffer, "%s %+4d %+3.1f",
-    // "before",
-    //  minutesBeforeSunset,
-    //  hourAngle
-    //  );
+    //Serial.print("before sunrise ");
     }
-  if(minutesBeforeSunset > 0 ) {
+  else if(minutesBeforeSunset > 0 ) {
     hourAngle = -180.0 * minutesBeforeSunset / minutesDaytime;
-    // sprintf(angle_buffer,"%s %+4d %+3.1f",
-    //  "mid",
-    //  minutesBeforeSunset,
-    //  hourAngle
-    //  );
+    //Serial.print("daytime ");
     }
   else {
     hourAngle = -180.0 * minutesBeforeSunset / minutesNighttime;
-    // sprintf(angle_buffer, "%s %+4d %+3.1f",
-    //  "after",
-    //  minutesBeforeSunset,
-    //  hourAngle
-    //  );
+    //Serial.print("after sunset ");
     }
 
   drawBackground(90.0);
@@ -53,7 +49,12 @@ void WatchyWadokei::drawWatchFace() {
   sprintf(time_buffer, "%02d:%02d", currentTime.Hour, currentTime.Minute);
 
   drawTime(time_buffer);
-  //drawTime(angle_buffer);
+
+
+ 
+  //Serial.print("hourAngle ");
+ // Serial.println(hourAngle);
+  
   
   ringChime();
   }
@@ -248,50 +249,113 @@ void WatchyWadokei::drawTime(char * centerText) {
   }
 
 void WatchyWadokei::ringChime(){
+  int16_t chimes[36] = {
+    //daytime
+    floor(minutesDaytime / 12.0), 6,
+    floor(minutesDaytime / 12.0 *  3), 7,
+    floor(minutesDaytime / 12.0 *  5), 8,
+    floor(minutesDaytime / 12.0 *  7), 9,
+    floor(minutesDaytime / 12.0 *  9), 4,
+    floor(minutesDaytime / 12.0 * 11), 5,
+    // counterclockwise nighttime
+    minutesDaytime + floor(minutesNighttime / 12.0 *  1), 6,
+    minutesDaytime + floor(minutesNighttime / 12.0 *  3), 7,
+    minutesDaytime + floor(minutesNighttime / 12.0 *  5), 8,
+    minutesDaytime + floor(minutesNighttime / 12.0 *  7), 9,
+    minutesDaytime + floor(minutesNighttime / 12.0 *  9), 4,
+    minutesDaytime + floor(minutesNighttime / 12.0 * 11), 5,
+    // clockwise nighttime
+    floor(minutesNighttime / 12.0 *  -1), 5,
+    floor(minutesNighttime / 12.0 *  -3), 4,
+    floor(minutesNighttime / 12.0 *  -5), 9,
+    floor(minutesNighttime / 12.0 *  -7), 8,
+    floor(minutesNighttime / 12.0 *  -9), 7,
+    floor(minutesNighttime / 12.0 * -11), 6
+    };
 
+  for(int16_t j = 0; j < 32; j += 2) {
+    //Serial.print(j);
+    //Serial.print( " minutes ");
+    //Serial.print(chimes[j]);
+    //Serial.print( " chimes ");
+    //Serial.print(chimes[j+1]);
 
+    //Serial.print( " in ");
+    //Serial.print( minutesBeforeSunset - chimes[j]);
+    //Serial.println( " minutes ");
+    
 
-  uint16_t chimes = 0;
+    if(minutesBeforeSunset - chimes[j] == 0) {
+      for(int16_t i = 5; i > 0; i--) {
+        pinMode(VIB_MOTOR_PIN, OUTPUT);
+        analogWrite(VIB_MOTOR_PIN, 164);
+        delay(500);
 
-  // counterclockwise daytime
-  if(      minutesBeforeSunset == floor(minutesDaytime / 12.0)) {      chimes = 6; }
-  else if( minutesBeforeSunset == floor(minutesDaytime / 12.0 *  3)) { chimes = 7; }
-  else if( minutesBeforeSunset == floor(minutesDaytime / 12.0 *  5)) { chimes = 8; }
-  else if( minutesBeforeSunset == floor(minutesDaytime / 12.0 *  7)) { chimes = 9; }
-  else if( minutesBeforeSunset == floor(minutesDaytime / 12.0 *  9)) { chimes = 4; }
-  else if( minutesBeforeSunset == floor(minutesDaytime / 12.0 * 11)) { chimes = 5; }
-
-  // counterclockwise nighttime
-  else if( minutesBeforeSunset == minutesDaytime + floor(minutesNighttime / 12.0 *  1)) { chimes = 6; }
-  else if( minutesBeforeSunset == minutesDaytime + floor(minutesNighttime / 12.0 *  3)) { chimes = 7; }
-  else if( minutesBeforeSunset == minutesDaytime + floor(minutesNighttime / 12.0 *  5)) { chimes = 8; }
-  else if( minutesBeforeSunset == minutesDaytime + floor(minutesNighttime / 12.0 *  7)) { chimes = 9; }
-  else if( minutesBeforeSunset == minutesDaytime + floor(minutesNighttime / 12.0 *  9)) { chimes = 4; }
-  else if( minutesBeforeSunset == minutesDaytime + floor(minutesNighttime / 12.0 * 11)) { chimes = 5; }
-
-  // clockwise nighttime
-  else if( minutesBeforeSunset == floor(minutesNighttime / 12.0 *  -1)) { chimes = 5; }
-  else if( minutesBeforeSunset == floor(minutesNighttime / 12.0 *  -3)) { chimes = 4; }
-  else if( minutesBeforeSunset == floor(minutesNighttime / 12.0 *  -5)) { chimes = 9; }
-  else if( minutesBeforeSunset == floor(minutesNighttime / 12.0 *  -7)) { chimes = 8; }
-  else if( minutesBeforeSunset == floor(minutesNighttime / 12.0 *  -9)) { chimes = 7; }
-  else if( minutesBeforeSunset == floor(minutesNighttime / 12.0 * -11)) { chimes = 6; }
-
-
-  for(uint16_t i = chimes; i > 0; i--) {
-    pinMode(VIB_MOTOR_PIN, OUTPUT);
-    analogWrite(VIB_MOTOR_PIN, 255);
-    delay(75);
-
-    analogWrite(VIB_MOTOR_PIN, 123);
-    delay(75);
-
-    analogWrite(VIB_MOTOR_PIN, 73);
-    delay(175);
-
-    analogWrite(VIB_MOTOR_PIN, 33);
-    delay(275);
-    analogWrite(VIB_MOTOR_PIN, 0);
-    delay(275);
+        analogWrite(VIB_MOTOR_PIN, 12);
+        delay(10);
+        analogWrite(VIB_MOTOR_PIN, 32);
+        delay(10);
+        analogWrite(VIB_MOTOR_PIN, 124);
+        delay(200);
+        analogWrite(VIB_MOTOR_PIN, 12);
+        delay(10);
+        analogWrite(VIB_MOTOR_PIN, 32);
+        delay(10);
+        analogWrite(VIB_MOTOR_PIN, 124);
+        delay(180);
+        analogWrite(VIB_MOTOR_PIN, 12);
+        delay(10);
+        analogWrite(VIB_MOTOR_PIN, 32);
+        delay(10);
+        analogWrite(VIB_MOTOR_PIN, 124);
+        delay(160);
+        analogWrite(VIB_MOTOR_PIN, 12);
+        delay(10);
+        analogWrite(VIB_MOTOR_PIN, 32);
+        delay(10);
+        analogWrite(VIB_MOTOR_PIN, 124);
+        delay(140);
+        analogWrite(VIB_MOTOR_PIN, 12);
+        delay(10);
+        analogWrite(VIB_MOTOR_PIN, 32);
+        delay(10);
+        analogWrite(VIB_MOTOR_PIN, 104);
+        delay(120);
+        analogWrite(VIB_MOTOR_PIN, 12);
+        delay(10);
+        analogWrite(VIB_MOTOR_PIN, 32);
+        delay(10);
+        analogWrite(VIB_MOTOR_PIN, 84);
+        delay(100);
+        analogWrite(VIB_MOTOR_PIN, 12);
+        delay(10);
+        analogWrite(VIB_MOTOR_PIN, 32);
+        delay(10);
+        analogWrite(VIB_MOTOR_PIN, 64);
+        delay(80);
+        analogWrite(VIB_MOTOR_PIN, 12);
+        delay(10);
+        analogWrite(VIB_MOTOR_PIN, 32);
+        delay(10);
+        analogWrite(VIB_MOTOR_PIN, 44);
+        delay(60);
+        analogWrite(VIB_MOTOR_PIN, 12);
+      }
+      // final fall off
+      delay(10);
+      analogWrite(VIB_MOTOR_PIN, 16);
+      delay(10);
+      analogWrite(VIB_MOTOR_PIN, 24);
+      delay(60);
+      analogWrite(VIB_MOTOR_PIN, 6);
+      delay(10);
+      analogWrite(VIB_MOTOR_PIN, 10);
+      delay(10);
+      analogWrite(VIB_MOTOR_PIN, 16);
+      delay(60);
+      analogWrite(VIB_MOTOR_PIN, 2);
+      delay(10);
+      analogWrite(VIB_MOTOR_PIN, 0);
+      }
     }
   }
