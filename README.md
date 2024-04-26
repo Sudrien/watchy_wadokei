@@ -2,8 +2,7 @@
 
 watchy_和時計
 
-Please compile with my fork https://github.com/Sudrien/Watchy 
-unless sqfmi/Watchy#233 is merged
+Tested with Watchy 1.4.10
 
 Tools >> Manage Libraries >> Add "Sunset" (tested with 1.1.7)
 
