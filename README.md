@@ -16,3 +16,6 @@ Sunrise & Sunset are dependent on LAT and LON in settings.h. These should be set
 settings.vibrateOClock should be set to false - this is hard coded to hourly rings.
 
 To stop the 'chime', comment out the call to `ringChime()` in `void WatchyWadokei::drawWatchFace()`.
+
+
+Port to Pinetime/InfiniTime: https://github.com/zyphlar/InfiniTime/tree/wb/wadokei
